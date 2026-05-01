@@ -324,4 +324,5 @@ MIT — use it, modify it, build on it.
 
 *Built with PyTorch · EMNIST · ipycanvas · trained on an RTX 5070 Ti*
 #   H a n d w r i t t e n - C h a r a c t e r - R e c o g n i t i o n  
+ #   H a n d w r i t t i n g - R e c o g n i t i o n - v 1  
  
