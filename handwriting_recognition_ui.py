@@ -1,19 +1,3 @@
-"""
-╔══════════════════════════════════════════════════════════════╗
-║   Handwritten Character Recognition — Desktop UI v2         ║
-║   ITM-390 Machine Learning  |  AUPP                         ║
-║   Tab 1: Upload any image file                              ║
-║   Tab 2: Draw canvas (mouse / stylus)                       ║
-╚══════════════════════════════════════════════════════════════╝
-
-Run:
-    python handwriting_recognition_ui.py
-
-Requirements (minimal):
-    pip install pillow numpy
-    pip install torch torchvision   # optional — enables real model
-"""
-
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import os, sys, math, time, threading, colorsys, random, string
