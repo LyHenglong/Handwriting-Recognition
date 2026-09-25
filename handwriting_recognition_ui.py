@@ -577,7 +577,7 @@ class HandwritingRecognitionApp(tk.Tk):
 
     def __init__(self):
         super().__init__()
-        self.title("Handwritten Character Recognition  |  ITM-390 · AUPP")
+        self.title("Handwritten Character Recognition")
         self.configure(bg=C["bg"])
         self.geometry("1320x860")
         self.minsize(1050, 720)
@@ -632,9 +632,6 @@ class HandwritingRecognitionApp(tk.Tk):
         tk.Label(lf, text="Handwritten Character Recognition",
                  bg=C["bg2"], fg=C["text"],
                  font=("Helvetica", 14, "bold")).pack(side="left")
-        tk.Label(lf, text="  ·  ITM-390 Machine Learning  ·  AUPP",
-                 bg=C["bg2"], fg=C["text3"],
-                 font=("Helvetica", 11)).pack(side="left")
         rf = tk.Frame(hdr, bg=C["bg2"])
         rf.pack(side="right", padx=18)
         self._badge = tk.Label(rf, text="● LOADING…", bg=C["bg2"],

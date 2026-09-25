@@ -58,7 +58,7 @@ Accuracy peaks around epoch 11 and drifts slightly afterward — expected behavi
 
 **Desktop app** (`handwriting_recognition_ui.py`) — a standalone Tkinter application with a drawing canvas, live prediction, confidence bar chart, prediction history, and model info panel.
 
-![App screenshot: drawing the letter A, predicted with 82.8% confidence](assets/demo_screenshot.png)
+![App screenshot: drawing the letter A, predicted with 88.4% confidence](assets/demo_screenshot.png)
 
 **Notebook demo** (`draw_and_predict.ipynb`) — the same prediction pipeline inside Jupyter, for quick experimentation:
 
