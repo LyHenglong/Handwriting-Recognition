@@ -716,9 +716,8 @@ class HandwritingRecognitionApp(tk.Tk):
 
         self.drop_zone = ImageDropZone(self._upload_panel,
                                         on_image=self._on_upload_image)
-        self.drop_zone.grid(row=0, column=0, sticky="nsew",
-                             highlightthickness=1,
-                             highlightbackground=C["border"])
+        self.drop_zone.config(highlightthickness=1, highlightbackground=C["border"])
+        self.drop_zone.grid(row=0, column=0, sticky="nsew")
 
         self._upload_info = tk.Label(
             self._upload_panel, text="No image loaded",
@@ -734,9 +733,8 @@ class HandwritingRecognitionApp(tk.Tk):
 
         self.draw_canvas_widget = DrawCanvas(self._draw_panel,
                                               on_image=self._on_canvas_image)
-        self.draw_canvas_widget.grid(row=0, column=0, sticky="nsew",
-                                      highlightthickness=1,
-                                      highlightbackground=C["border"])
+        self.draw_canvas_widget.config(highlightthickness=1, highlightbackground=C["border"])
+        self.draw_canvas_widget.grid(row=0, column=0, sticky="nsew")
 
         # Start with upload panel on top
         self._upload_panel.tkraise()
