@@ -1,103 +1,93 @@
-# ✍️ Handwriting Recognition — AI That Reads Your Writing
+# Handwriting Recognition
 
-> **Draw a letter. The AI names it.** Trained on 700 000+ real handwritten characters, running live in your browser — no internet needed after setup.
+A deep learning system that recognizes handwritten characters in real time. A custom ResNet-style CNN is trained on the EMNIST dataset (814K+ samples, 62 classes) and served through both a Jupyter demo and a standalone desktop application.
 
----
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
-## 🧠 What Is This?
+## Table of Contents
 
-This project trains a deep neural network to recognize **62 handwritten characters** — every digit (`0–9`), uppercase letter (`A–Z`), and lowercase letter (`a–z`) — and then lets you **draw on screen** and watch it predict in real time.
+- [Overview](#overview)
+- [Results](#results)
+- [Demo](#demo)
+- [Project Structure](#project-structure)
+- [Model Architecture](#model-architecture)
+- [Training Setup](#training-setup)
+- [Getting Started](#getting-started)
+- [How Prediction Works](#how-prediction-works)
+- [Using the Model in Your Own Code](#using-the-model-in-your-own-code)
+- [Roadmap](#roadmap)
+- [License](#license)
+- [Author](#author)
 
-| | |
+## Overview
+
+This project trains a convolutional neural network to classify handwritten characters — digits (`0–9`), uppercase letters (`A–Z`), and lowercase letters (`a–z`) — and provides two ways to interact with it: a Jupyter notebook with a live drawing canvas, and a standalone Tkinter desktop app. It covers the full pipeline: data augmentation, model design, training with mixed precision, checkpointing, and inference-time image segmentation for multi-character input.
+
+## Results
+
+| Metric | Value |
 |---|---|
-| **Dataset** | EMNIST ByClass — 814 255 samples |
-| **Model** | Custom ResNet — 2.77 M parameters |
-| **Best accuracy** | **84.74%** on the test set |
-| **Hardware used** | NVIDIA RTX 5070 Ti (17.1 GB VRAM) |
-| **Training time** | ~40 minutes (20 epochs) |
-
----
-
-## 📁 Project Structure
+| Dataset | EMNIST ByClass — 814,255 samples, 62 classes |
+| Model | Custom ResNet CNN — 2.77M parameters |
+| Test accuracy | **84.74%** |
+| Training time | ~40 minutes (20 epochs on an RTX 5070 Ti) |
 
 ```
-ML project/
-│
-├── handwriting_recognition_v2.ipynb   ← Train the model
-├── draw_and_predict.ipynb             ← Draw & predict live
-│
-├── checkpoints/
-│   ├── best_model.pth                 ← Best saved weights
-│   └── last_checkpoint.pth           ← Resume training anytime
-│
-└── data/                              ← EMNIST dataset (auto-downloaded)
+Epoch  1  →  Loss: 2.1500  |  Test Acc: 79.80%
+Epoch  2  →  Loss: 1.9642  |  Test Acc: 81.94%
+Epoch  6  →  Loss: 1.8744  |  Test Acc: 82.82%
+Epoch  7  →  Loss: 1.8625  |  Test Acc: 83.77%
+Epoch 11  →  Loss: 1.8290  |  Test Acc: 84.74%  ← best checkpoint
+Epoch 20  →  Loss: 1.7908  |  Test Acc: 83.91%
 ```
 
----
+Accuracy peaks around epoch 11 and drifts slightly afterward — expected behavior under cosine annealing. The best checkpoint is saved independently of the final one.
 
-## 🗂️ The Two Notebooks
+**Per-class error analysis** — the hardest characters are the ones that are visually ambiguous even to humans:
 
-### 📒 `handwriting_recognition_v2.ipynb` — Training
+| Character | Accuracy | Likely confusion |
+|---|---|---|
+| `s` | 35.7% | `S` (case) |
+| `l` | 35.8% | `1`, `I`, `i` |
+| `o` | 43.3% | `0`, `O` |
+| `O` | 47.0% | `0`, `o` |
 
-This is where the brain is built and trained.
+## Demo
 
-**What it does, step by step:**
+**Desktop app** (`handwriting_recognition_ui.py`) — a standalone Tkinter application with a drawing canvas, live prediction, confidence bar chart, prediction history, and model info panel.
 
-| Step | What happens |
-|------|-------------|
-| 1 | Loads the **EMNIST ByClass** dataset (auto-downloads on first run) |
-| 2 | Applies data augmentation: random rotation, translation, shear, erasing |
-| 3 | Fixes EMNIST's quirky image orientation (images arrive mirrored + rotated) |
-| 4 | Builds a **ResNet-style CNN** with skip connections and batch normalization |
-| 5 | Trains with **AdamW + Cosine LR scheduler + Mixed Precision (AMP)** |
-| 6 | Saves checkpoints every epoch — resume training anytime if it crashes |
-| 7 | Plots training loss and test accuracy curves |
-| 8 | Shows per-class accuracy so you can see which characters are hardest |
+> _Add a screenshot or GIF of the app here before sharing this repo._
 
-**Hardest classes the model struggles with:**
-
-| Char | Accuracy | Why it's hard |
-|------|----------|---------------|
-| `s` | 35.7% | Looks like `S` (case confusion) |
-| `l` | 35.8% | Looks like `1`, `I`, `i` |
-| `o` | 43.3% | Looks like `0`, `O` |
-| `O` | 47.0% | Looks like `0`, `o` |
-
-These are genuinely hard even for humans — context makes all the difference!
-
----
-
-### 🖼️ `draw_and_predict.ipynb` — Live Demo
-
-This is the fun part. Open this notebook, run all cells, and you get an **interactive drawing canvas** right inside Jupyter.
+**Notebook demo** (`draw_and_predict.ipynb`) — the same prediction pipeline inside Jupyter, for quick experimentation:
 
 ```
 ┌─────────────────────────┐
-│                         │
-│   Draw here with mouse  │  ← 280×280 canvas
-│                         │
+│                          │
+│   Draw here with mouse   │  ← 280×280 canvas
+│                          │
 └─────────────────────────┘
   [ Clear ]  [ Predict ]
-  Draw a character above, then click Predict.
 ```
 
-**What happens when you click Predict:**
+## Project Structure
 
-1. The canvas image is captured
-2. **Character segmentation** finds each letter you drew (even if you wrote multiple)
-3. Each character is preprocessed to match EMNIST's exact format
-4. The model outputs a prediction with **top-5 confidence scores**
-5. Results appear as a bar chart — green = confident, red = unsure (`?`)
+```
+Handwriting-Recognition/
+├── handwriting_recognition_v2.ipynb   # Train the model
+├── draw_and_predict.ipynb             # Jupyter drawing + prediction demo
+├── handwriting_recognition_ui.py      # Standalone desktop app (Tkinter)
+├── test_gpu.ipynb                     # Quick CUDA/GPU availability check
+├── checkpoints/
+│   ├── best_model.pth                 # Best saved weights
+│   └── last_checkpoint.pth            # Resume training anytime
+└── README.md
+```
 
-**Smart segmentation features:**
-- **Gap splitting** — finds empty space between well-separated letters
-- **Valley splitting** — handles touching/cursive letters using ink density valleys
-- **Stroke thickening** — compensates for thin canvas strokes vs. EMNIST's thick ones
-- **Centre-of-mass centering** — places each character exactly as EMNIST expects
+The EMNIST dataset is downloaded automatically on first run — no manual setup required.
 
----
-
-## 🏗️ Model Architecture
+## Model Architecture
 
 ```
 Input (1×28×28 grayscale)
@@ -126,17 +116,32 @@ Input (1×28×28 grayscale)
    Output: 62 class logits
 ```
 
-**Each ResidualBlock:**
+Each residual block uses a standard pre-activation-free design with a projection shortcut when the shape changes:
+
 ```
   Input ──────────────────────────────► (+) ──► ReLU
     │                                    ▲
     └─► Conv → BN → ReLU → Conv → BN ───┘
-         (if shape changes: 1×1 shortcut conv)
+         (1×1 shortcut conv if shape changes)
 ```
 
----
+## Training Setup
 
-## 🚀 Getting Started
+| Hyperparameter | Value | Rationale |
+|---|---|---|
+| Batch size | 256 | Maximizes GPU utilization |
+| Epochs | 20 | Sweet spot before overfitting |
+| Optimizer | AdamW | Better weight decay decoupling than Adam |
+| Learning rate | 0.001 → 1e-6 | Cosine annealing schedule |
+| Weight decay | 1e-4 | L2 regularization |
+| Loss | Cross-entropy + label smoothing (0.1) | Reduces overconfidence, handles class imbalance |
+| Class weights | Inverse frequency | Upweights rare classes |
+| Precision | Mixed precision (FP16 / AMP) | ~2× faster training, no accuracy loss |
+| Dropout | 0.4 | Regularizes the classifier head |
+
+**Data augmentation:** random rotation (±15°), random affine (10% translation, 5° shear), random erasing (p=0.2, 2–15% area), plus a fix for EMNIST's native mirrored/rotated orientation.
+
+## Getting Started
 
 ### Prerequisites
 
@@ -144,87 +149,39 @@ Input (1×28×28 grayscale)
 pip install torch torchvision tqdm matplotlib numpy scipy pillow ipycanvas ipywidgets jupyterlab
 ```
 
-> **GPU recommended** but not required — the model will fall back to CPU automatically.
+A GPU is recommended but not required — the code falls back to CPU automatically.
 
-### Step 1 — Train the model
+### 1. Train the model
 
 ```bash
 jupyter notebook handwriting_recognition_v2.ipynb
 ```
 
-Run all cells. Training takes ~2 min/epoch on a modern GPU, longer on CPU.  
-The best model is saved to `checkpoints/best_model.pth` automatically.
+Run all cells. The best checkpoint is saved to `checkpoints/best_model.pth` automatically. If `last_checkpoint.pth` already exists, training resumes from it.
 
-> **Already trained?** Skip to Step 2. The checkpoint resume logic will detect `last_checkpoint.pth` and pick up where it left off.
+### 2. Run the desktop app
 
-### Step 2 — Try it live
+```bash
+python handwriting_recognition_ui.py
+```
+
+### 3. Or try the notebook demo
 
 ```bash
 jupyter notebook draw_and_predict.ipynb
 ```
 
-Run all cells → a canvas appears → draw a character → click **Predict**.
+Run all cells, draw a character on the canvas, and click **Predict**.
 
----
+## How Prediction Works
 
-## ⚙️ Training Details
+1. The canvas image is captured.
+2. Connected dark regions ("ink blobs") are located and treated as candidate characters.
+3. Wide blobs (e.g. multiple characters written together) are split — first by looking for empty columns between letters, then by finding the thinnest point in the ink for touching/cursive strokes.
+4. Each character crop is resized to 28×28, centered by center of mass (not just bounding box), and its strokes are thickened to match EMNIST's stroke width.
+5. The model outputs a probability distribution over 62 classes; predictions below 30% confidence are shown as `?` instead of a guess.
 
-| Hyperparameter | Value | Why |
-|---|---|---|
-| Batch size | 256 | Maximizes GPU utilization |
-| Epochs | 20 | Sweet spot before overfitting |
-| Optimizer | AdamW | Better weight decay than Adam |
-| Learning rate | 0.001 → 0.000001 | Cosine annealing schedule |
-| Weight decay | 1e-4 | L2 regularization |
-| Loss function | CrossEntropy + label smoothing 0.1 | Handles class imbalance |
-| Class weights | Inverse frequency | Rare classes get more attention |
-| Mixed precision | FP16 (AMP) | ~2× faster, same accuracy |
-| Dropout | 0.4 | Prevents overfitting before classifier |
-
-**Data augmentation applied during training:**
-
-```
-RandomRotation(±15°)
-RandomAffine(translate=10%, shear=5°)
-RandomErasing(p=0.2, area=2–15%)
-EMNIST orientation fix (rot90 + flip)
-```
-
----
-
-## 📈 Training Results
-
-```
-Epoch  1  →  Loss: 2.1500  |  Test Acc: 79.80%  ⭐ new best
-Epoch  2  →  Loss: 1.9642  |  Test Acc: 81.94%  ⭐ new best
-Epoch  6  →  Loss: 1.8744  |  Test Acc: 82.82%  ⭐ new best
-Epoch  7  →  Loss: 1.8625  |  Test Acc: 83.77%  ⭐ new best
-Epoch 11  →  Loss: 1.8290  |  Test Acc: 84.74%  ⭐ new best  ← FINAL BEST
-Epoch 20  →  Loss: 1.7908  |  Test Acc: 83.91%
-```
-
-The model hit peak accuracy at epoch 11 then slightly drifted — a normal pattern with cosine annealing. The best checkpoint is always saved separately.
-
----
-
-## 💡 For Developers
-
-### Checkpoint format
-
-```python
-{
-    "epoch":           int,          # last completed epoch
-    "model_state":     state_dict,   # model weights
-    "optimizer_state": state_dict,   # AdamW state
-    "scheduler_state": state_dict,   # cosine scheduler state
-    "scaler_state":    state_dict,   # AMP GradScaler state
-    "best_acc":        float,        # best test accuracy so far
-    "train_losses":    list[float],  # per-epoch training loss
-    "test_accuracies": list[float],  # per-epoch test accuracy
-}
-```
-
-### Loading the model in your own code
+## Using the Model in Your Own Code
 
 ```python
 import torch
@@ -262,13 +219,11 @@ class HandwritingResNet(nn.Module):
     def forward(self, x):
         return self.classifier(self.pool(self.layer3(self.layer2(self.layer1(self.stem(x))))).view(x.size(0), -1))
 
-# Load
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model  = HandwritingResNet(62).to(device)
 model.load_state_dict(torch.load('checkpoints/best_model.pth', map_location=device))
 model.eval()
 
-# Predict a 28×28 grayscale PIL image
 from torchvision import transforms
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
@@ -280,52 +235,31 @@ def predict(pil_image):
     return [(classes[i], p.item()) for i, p in zip(top5_i, top5_p)]
 ```
 
-### Extending the model
+**Common tweaks:**
 
-| Goal | What to change |
-|------|---------------|
-| More epochs | Set `EPOCHS = 30` in training notebook |
-| Larger batch | Increase `BATCH_SIZE` (limited by VRAM) |
-| Different split | Change `split="byclass"` to `"balanced"` or `"letters"` |
-| Only digits | Set `NUM_CLASSES = 10`, use `split="digits"` |
-| Export to ONNX | `torch.onnx.export(model, dummy, "model.onnx")` |
+| Goal | Change |
+|---|---|
+| Train longer | `EPOCHS = 30` in the training notebook |
+| Larger batches | Increase `BATCH_SIZE` (VRAM-limited) |
+| Different split | `split="byclass"` → `"balanced"` or `"letters"` |
+| Digits only | `NUM_CLASSES = 10`, `split="digits"` |
+| Export for deployment | `torch.onnx.export(model, dummy, "model.onnx")` |
 
----
+## Roadmap
 
-## 🔍 How the Live Prediction Works (Plain English)
+- [ ] Confidence calibration (model is sometimes overconfident on the `s`/`l` confusion pair)
+- [ ] Word-level context via a language model to resolve ambiguous characters
+- [ ] Mobile / touch support for the drawing canvas
+- [ ] ONNX / TorchScript export for edge deployment
+- [ ] Fine-tuning support on custom handwriting samples
 
-1. **You draw** on a white 280×280 canvas with a thick black pen
-2. The notebook **takes a photo** of the canvas
-3. It **finds ink blobs** (connected dark regions) and treats each as a character
-4. If a blob is too wide (e.g., you wrote "Hi"), it **splits it** by looking for empty columns between letters, or by finding the thinnest part of the ink
-5. Each character crop gets **resized to 28×28**, centered by its center of mass (not just bounding box), and its strokes are thickened to match EMNIST
-6. The model **outputs 62 probabilities** — the highest one wins
-7. If the top confidence is below 30%, it shows `?` instead of guessing
+## License
 
----
+MIT — see [LICENSE](LICENSE).
 
-## 🤝 Contributing
+## Author
 
-Pull requests welcome. Areas worth improving:
+**LyHenglong**
+[GitHub](https://github.com/LyHenglong) · _add LinkedIn / portfolio / email here_
 
-- [ ] Confidence calibration (model is sometimes overconfident on `s`/`l` confusion)
-- [ ] Word-level context (use a language model to resolve ambiguous characters)
-- [ ] Mobile / touch support for the canvas
-- [ ] Export to TorchScript / ONNX for edge deployment
-- [ ] Train on custom handwriting to personalize the model
-
----
-
-## 📜 License
-
-MIT — use it, modify it, build on it.
-
----
-
-*Built with PyTorch · EMNIST · ipycanvas · trained on an RTX 5070 Ti*
-#   H a n d w r i t t e n - C h a r a c t e r - R e c o g n i t i o n  
- #   H a n d w r i t t i n g - R e c o g n i t i o n - v 1  
- #   H a n d w r i t t i n g - R e c o g n i t i o n - v 1  
- #   H a n d w r i t t e n - C h a r a c t e r - R e c o g n i t i o n  
- #   H a n d w r i t t i n g - R e c o g n i t i o n - v 1  
- 
+Built with PyTorch and the EMNIST dataset.
